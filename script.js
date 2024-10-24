@@ -1,16 +1,16 @@
-const apiKey = 'a50b3cdbf88fed061a2ebbe1b82c4935'; // Sua chave da API OpenWeatherMap
+const apiKey = 'a50b3cdbf88fed061a2ebbe1b82c4935'; // Chave da API OpenWeatherMap
 let defaultCity = 'Porto Alegre'; // Cidade padrão
-let map; // Variável global para armazenar o mapa
-let chartInstance; // Variável global para armazenar o gráfico
+let map; // Variável global para o mapa
+let chartInstance; // Variável global para o gráfico
 
-// Função para mostrar erros no front-end
+// Função para exibir mensagens de erro no front-end
 function showError(message) {
     const errorDiv = document.getElementById('error-message');
     errorDiv.textContent = message;
     errorDiv.style.display = 'block';
 }
 
-// Função para ocultar a mensagem de erro
+// Função para ocultar mensagens de erro
 function hideError() {
     const errorDiv = document.getElementById('error-message');
     errorDiv.style.display = 'none';
@@ -33,7 +33,7 @@ async function fetchWeatherData(city) {
                 humidity: entry.main.humidity
             }));
         } else {
-            showError('Erro ao buscar dados: Cidade não encontrada.');
+            showError('Erro: Cidade não encontrada.');
             return [];
         }
     } catch (error) {
@@ -44,7 +44,7 @@ async function fetchWeatherData(city) {
 
 // Função para atualizar o gráfico de níveis de água e outras informações
 async function updateChartAndInfo(city) {
-    hideError(); // Oculta qualquer erro anterior
+    hideError(); // Oculta erros anteriores
     const weatherData = await fetchWeatherData(city);
 
     if (weatherData.length === 0) return; // Retorna caso não haja dados
@@ -151,7 +151,7 @@ async function fetchCityCoordinates(city) {
             const { lat, lon } = data[0];
             return { lat: parseFloat(lat), lon: parseFloat(lon) };
         } else {
-            showError('Cidade não encontrada.');
+            showError('Erro: Cidade não encontrada.');
             return null;
         }
     } catch (error) {
@@ -160,7 +160,7 @@ async function fetchCityCoordinates(city) {
     }
 }
 
-// Função principal para pesquisar e carregar mapa e gráfico
+// Função principal para pesquisar e carregar o mapa e gráfico
 async function searchCity() {
     const cityInput = document.getElementById('cityInput').value.trim() || defaultCity;
     const coordinates = await fetchCityCoordinates(cityInput);
@@ -168,7 +168,7 @@ async function searchCity() {
     if (coordinates) {
         const { lat, lon } = coordinates;
         initMap(lat, lon, cityInput);
-        updateChartAndInfo(cityInput); // Atualiza o gráfico e informações com a cidade buscada
+        updateChartAndInfo(cityInput); // Atualiza o gráfico e informações da cidade pesquisada
     }
 }
 
@@ -177,5 +177,3 @@ document.getElementById('searchButton').addEventListener('click', searchCity);
 
 // Inicializa a aplicação com a cidade padrão
 searchCity();
-
-
