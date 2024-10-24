@@ -1,63 +1,114 @@
-const apiKey = 'fcfd12329f77599c436a33ce81107093'; // sua chave da API OpenWeatherMap
-let city = 'Porto Alegre'; // Cidade padrão, caso o usuário não insira nada
+const apiKey = 'a50b3cdbf88fed061a2ebbe1b82c4935'; // Sua chave da API OpenWeatherMap
+let defaultCity = 'Porto Alegre'; // Cidade padrão
+let map; // Variável global para armazenar o mapa
+let chartInstance; // Variável global para armazenar o gráfico
 
-// Função para buscar dados reais da API OpenWeatherMap
-async function getWaterLevelData() {
+// Função para mostrar erros no front-end
+function showError(message) {
+    const errorDiv = document.getElementById('error-message');
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+}
+
+// Função para ocultar a mensagem de erro
+function hideError() {
+    const errorDiv = document.getElementById('error-message');
+    errorDiv.style.display = 'none';
+}
+
+// Função para buscar dados da API OpenWeatherMap
+async function fetchWeatherData(city) {
     const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`;
 
     try {
         const response = await fetch(url);
         const data = await response.json();
 
-        if (data.cod === '200') {
-            // Extraindo dados de precipitação (chuva)
-            const waterLevels = data.list.map(entry => ({
+        if (response.ok) {
+            return data.list.map(entry => ({
                 date: entry.dt_txt,
-                waterLevel: entry.rain ? entry.rain['3h'] || 0 : 0 // Precipitação nas últimas 3 horas
+                waterLevel: entry.rain ? entry.rain['3h'] || 0 : 0,
+                temperature: entry.main.temp,
+                windSpeed: entry.wind.speed,
+                humidity: entry.main.humidity
             }));
-
-            return waterLevels;
         } else {
-            console.error('Erro ao buscar dados: Cidade não encontrada');
-            alert('Cidade não encontrada, tente novamente.');
+            showError('Erro ao buscar dados: Cidade não encontrada.');
             return [];
         }
     } catch (error) {
-        console.error('Erro ao buscar dados da API:', error);
+        showError('Erro ao buscar dados da API.');
+        return [];
     }
 }
 
-// Função para inicializar o gráfico de níveis de água
-async function initWaterLevelChart() {
-    const waterLevelData = await getWaterLevelData();
+// Função para atualizar o gráfico de níveis de água e outras informações
+async function updateChartAndInfo(city) {
+    hideError(); // Oculta qualquer erro anterior
+    const weatherData = await fetchWeatherData(city);
 
-    const labels = waterLevelData.map(entry => entry.date);
-    const levels = waterLevelData.map(entry => entry.waterLevel);
+    if (weatherData.length === 0) return; // Retorna caso não haja dados
+
+    const labels = weatherData.map(entry => entry.date);
+    const levels = weatherData.map(entry => entry.waterLevel);
+    const temperatures = weatherData.map(entry => entry.temperature);
+    const windSpeeds = weatherData.map(entry => entry.windSpeed);
+    const humidityLevels = weatherData.map(entry => entry.humidity);
 
     const ctx = document.getElementById('waterLevelChart').getContext('2d');
 
-    const data = {
-        labels: labels,
-        datasets: [{
-            label: `Nível de Água (mm) em ${city}`,
-            data: levels,
-            borderColor: 'rgba(75, 192, 192, 1)',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            fill: true,
-            borderWidth: 2
-        }]
-    };
+    // Remove gráfico anterior se houver um
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
 
-    const config = {
+    // Renderiza o novo gráfico
+    chartInstance = new Chart(ctx, {
         type: 'line',
-        data: data,
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: `Nível de Água (mm) em ${city}`,
+                    data: levels,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true,
+                    borderWidth: 2
+                },
+                {
+                    label: `Temperatura (°C) em ${city}`,
+                    data: temperatures,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    fill: false,
+                    borderWidth: 2
+                },
+                {
+                    label: `Velocidade do Vento (m/s) em ${city}`,
+                    data: windSpeeds,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    fill: false,
+                    borderWidth: 2
+                },
+                {
+                    label: `Humidade (%) em ${city}`,
+                    data: humidityLevels,
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                    fill: false,
+                    borderWidth: 2
+                }
+            ]
+        },
         options: {
             scales: {
                 y: {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Nível de Água (mm)'
+                        text: 'Valores'
                     }
                 },
                 x: {
@@ -68,55 +119,63 @@ async function initWaterLevelChart() {
                 }
             }
         }
-    };
-
-    new Chart(ctx, config);
+    });
 }
 
-// Função para inicializar o mapa com Leaflet.js + OpenStreetMap
-let map = L.map('map').setView([-30.0346, -51.2177], 12); // Porto Alegre como padrão
+// Função para inicializar o mapa
+function initMap(cityLat, cityLon, cityName) {
+    if (map) {
+        map.remove();
+    }
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(map);
+    map = L.map('map').setView([cityLat, cityLon], 12);
 
-// Função para buscar a cidade usando OpenStreetMap Nominatim API
-function searchCity() {
-    const cityInput = document.getElementById('cityInput').value || city;
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${cityInput}`;
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
 
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (data.length > 0) {
-                const lat = data[0].lat;
-                const lon = data[0].lon;
-
-                // Atualiza o mapa para focar na nova cidade
-                map.setView([lat, lon], 12);
-
-                // Adiciona um marcador na cidade pesquisada
-                L.marker([lat, lon]).addTo(map)
-                    .bindPopup(`Cidade: ${cityInput}`)
-                    .openPopup();
-            } else {
-                alert('Cidade não encontrada.');
-            }
-        })
-        .catch(error => {
-            console.error('Erro ao buscar a cidade:', error);
-        });
+    L.marker([cityLat, cityLon]).addTo(map)
+        .bindPopup(`Cidade: ${cityName}`)
+        .openPopup();
 }
 
-// Captura a cidade digitada e carrega os dados
-document.getElementById('searchButton').addEventListener('click', function () {
-    searchCity(); // Busca e atualiza o mapa
-    initWaterLevelChart(); // Atualiza o gráfico
-});
+// Função para buscar coordenadas da cidade
+async function fetchCityCoordinates(city) {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${city}`;
 
-// Inicializa o gráfico ao carregar a página
-window.onload = function() {
-    initWaterLevelChart(); // Carrega o gráfico com a cidade padrão
-    searchCity(); // Inicializa o mapa com a cidade padrão
-};
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.length > 0) {
+            const { lat, lon } = data[0];
+            return { lat: parseFloat(lat), lon: parseFloat(lon) };
+        } else {
+            showError('Cidade não encontrada.');
+            return null;
+        }
+    } catch (error) {
+        showError('Erro ao buscar coordenadas da cidade.');
+        return null;
+    }
+}
+
+// Função principal para pesquisar e carregar mapa e gráfico
+async function searchCity() {
+    const cityInput = document.getElementById('cityInput').value.trim() || defaultCity;
+    const coordinates = await fetchCityCoordinates(cityInput);
+
+    if (coordinates) {
+        const { lat, lon } = coordinates;
+        initMap(lat, lon, cityInput);
+        updateChartAndInfo(cityInput); // Atualiza o gráfico e informações com a cidade buscada
+    }
+}
+
+// Event listener para o botão de pesquisa
+document.getElementById('searchButton').addEventListener('click', searchCity);
+
+// Inicializa a aplicação com a cidade padrão
+searchCity();
+
 

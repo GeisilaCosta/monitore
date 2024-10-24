@@ -3,37 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Monitoramento de enchentes com dados ao vivo sobre áreas de risco e níveis de água em cidades brasileiras.">
     <title>Monitoramento de Enchentes</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        #map {
-            height: 400px;
-            width: 100%;
-        }
-    </style>
 </head>
 <body>
     <header>
         <h1>Monitoramento de Enchentes</h1>
+        <nav>
+            <a href="#map-section">Áreas de Risco</a>
+            <a href="#chart-section">Nível de Água</a>
+        </nav>
     </header>
 
     <main>
+        <!-- Mensagem de erro (se houver) -->
+        <div id="error-message" class="error-message"></div>
+
         <!-- Campo de entrada para a cidade -->
         <div class="input-group">
-            <input type="text" id="cityInput" placeholder="Digite a cidade" />
-            <button id="searchButton">Pesquisar</button>
+            <input type="text" id="cityInput" placeholder="Digite a cidade" aria-label="Digite a cidade que deseja pesquisar" />
+            <button id="searchButton" aria-label="Pesquisar cidade">Pesquisar</button>
         </div>
 
+        <!-- Seção de Mapa -->
         <section id="map-section">
             <h2>Áreas de Risco</h2>
-            <div id="map"></div>
+            <div id="map" aria-label="Mapa de Áreas de Risco"></div>
         </section>
 
+        <!-- Seção de Gráfico -->
         <section id="chart-section">
             <h2>Nível de Água</h2>
-            <canvas id="waterLevelChart"></canvas>
+            <canvas id="waterLevelChart" aria-label="Gráfico de Níveis de Água"></canvas>
         </section>
     </main>
 
@@ -41,8 +45,10 @@
         <p>Desenvolvido por Geisila Costa - Monitoramento de Enchentes</p>
     </footer>
 
+    <!-- Scripts colocados no final do corpo para melhor performance -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
+
 
