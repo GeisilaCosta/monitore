@@ -26,8 +26,32 @@ main {
     padding: 20px;
 }
 
+.input-group {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+input[type="text"] {
+    padding: 10px;
+    font-size: 16px;
+    width: 200px;
+    margin-right: 10px;
+}
+
+button {
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
 #map-section, #chart-section {
     margin-bottom: 40px;
+}
+
+
+#waterLevelChart {
+    margin-top: 20px;
 }
 
 #map {
