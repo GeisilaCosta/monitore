@@ -5,14 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitoramento de Enchentes</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <h1>Monitoramento de Enchentes no Rio Grande do Sul</h1>
+        <h1>Monitoramento de Enchentes</h1>
     </header>
 
     <main>
+        <!-- Campo de entrada para a cidade -->
+        <div class="input-group">
+            <input type="text" id="cityInput" placeholder="Digite a cidade" />
+            <button id="searchButton">Pesquisar</button>
+        </div>
+
         <section id="map-section">
             <h2>Áreas de Risco</h2>
             <div id="map"></div>
@@ -25,11 +38,11 @@
     </main>
 
     <footer>
-        <p>Desenvolvido para processo seletivo - Monitoramento de Enchentes</p>
+        <p>Desenvolvido por Geisila Costa - Monitoramento de Enchentes</p>
     </footer>
 
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="script.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" async defer></script>
-
 </body>
 </html>
+
