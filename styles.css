@@ -2,7 +2,7 @@
 :root {
     --primary-color: #0288d1;
     --secondary-color: #f4f4f4;
-    --text-color: #3f3e3e;
+    --text-color: #f7f6f6;
     --error-color: #ff4c4c;
 }
 
@@ -100,7 +100,7 @@ button:hover {
     padding: 10px;
     width: 150px;
     text-align: center;
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(105, 104, 104, 0.8);
     border-radius: 5px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -133,8 +133,9 @@ canvas {
 }
 
 footer {
-    background-color: var(--primary-color);
-    color: white;
+    background-color:rgba(184, 180, 180, 0.425);
+    color:var(--secondary-color);
+    border: 2px solid #ddd;
     text-align: center;
     padding: 10px;
     position: relative;
