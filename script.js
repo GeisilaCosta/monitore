@@ -112,11 +112,32 @@ async function fetchWeatherAlerts(city) {
         const data = await response.json();
 
         if (response.ok) {
-            displayWeatherAlerts(data.alerts || []);
+            const alertsContainer = document.getElementById('alerts-container');
+            alertsContainer.innerHTML = ''; // Limpa alertas anteriores
+
+            if (data.alerts && data.alerts.length > 0) {
+                // Se houver alertas, exibe cada um deles
+                data.alerts.forEach(alert => {
+                    const alertDiv = document.createElement('div');
+                    alertDiv.classList.add('alert');
+                    alertDiv.innerHTML = `
+                        <h4>${alert.event}</h4>
+                        <p>${alert.description}</p>
+                        <p><strong>Início:</strong> ${new Date(alert.start * 1000).toLocaleString('pt-BR')}</p>
+                        <p><strong>Fim:</strong> ${new Date(alert.end * 1000).toLocaleString('pt-BR')}</p>
+                    `;
+                    alertsContainer.appendChild(alertDiv);
+                });
+            } else {
+                // Se não houver alertas, exibe a mensagem
+                alertsContainer.innerHTML = '<p>Não há alertas meteorológicos para esta cidade.</p>';
+            }
         } else {
+            // Se a resposta não for OK, exibe uma mensagem de erro
             showError('Erro ao buscar alertas meteorológicos.');
         }
     } catch (error) {
+        // Exibe mensagem de erro se a requisição falhar
         showError('Erro ao buscar alertas meteorológicos.');
     }
 }
