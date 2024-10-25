@@ -20,6 +20,10 @@
     </header>
 
     <main>
+
+        <div id="alerts-container"></div>
+<div id="error-message" style="display: none; color: red;"></div>
+
         <!-- Mensagem de erro (se houver) -->
         <div id="error-message" class="error-message"></div>
 
@@ -28,7 +32,7 @@
             <input type="text" id="cityInput" placeholder="Digite a cidade" aria-label="Digite a cidade que deseja pesquisar" />
             <button id="searchButton" aria-label="Pesquisar cidade">Pesquisar</button>
         </div>
-
+        
         <!-- Seção de Mapa -->
         <section id="map-section">
             <h2>Áreas de Risco</h2>
@@ -40,12 +44,14 @@
             <h2>Nível de Água</h2>
             <canvas id="waterLevelChart" aria-label="Gráfico de Níveis de Água"></canvas>
         </section>
-
-        <div id="forecast">
-            <h3>Previsão para os próximos dias</h3>
-            <div id="forecastContainer"></div>
-        </div>
         
+         <!-- Seção de Previsão -->
+         <section id="forecast">
+            <h2>Proximos dias</h2>
+            <div id="forecast-container" aria-label="Previsão para os próximos dias">
+                <!-- Aqui será exibido o conteúdo da previsão -->
+            </div>
+        </section>
     </main>
 
     <footer>

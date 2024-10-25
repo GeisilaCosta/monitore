@@ -1,13 +1,71 @@
-const apiKey = 'a50b3cdbf88fed061a2ebbe1b82c4935'; // Chave da API OpenWeatherMap
-let defaultCity = 'Porto Alegre'; // Cidade padrão
-let map; // Variável global para o mapa
-let chartInstance; // Variável global para o gráfico
+const apiKey = 'a50b3cdbf88fed061a2ebbe1b82c4935';
+let defaultCity = 'Porto Alegre';
+let map;
+let chartInstance;
 
 // Função para exibir mensagens de erro no front-end
 function showError(message) {
     const errorDiv = document.getElementById('error-message');
     errorDiv.textContent = message;
     errorDiv.style.display = 'block';
+}
+
+// Função para exibir alertas meteorológicos
+function displayWeatherAlerts(alerts) {
+    const alertsContainer = document.getElementById('alerts-container');
+    alertsContainer.innerHTML = '';
+
+    if (alerts.length > 0) {
+        alerts.forEach(alert => {
+            const alertDiv = document.createElement('div');
+            alertDiv.classList.add('alert');
+
+            alertDiv.innerHTML = `
+                <h4>${alert.event}</h4>
+                <p>${alert.description}</p>
+                <p><strong>Início:</strong> ${new Date(alert.start * 1000).toLocaleString('pt-BR')}</p>
+                <p><strong>Fim:</strong> ${new Date(alert.end * 1000).toLocaleString('pt-BR')}</p>
+            `;
+            alertsContainer.appendChild(alertDiv);
+        });
+    } else {
+        alertsContainer.innerHTML = '<p>Não há alertas meteorológicos para esta cidade.</p>';
+    }
+}
+
+// Função para exibir a previsão do tempo
+function displayForecast(forecastData) {
+    const forecastContainer = document.getElementById('forecast-container');
+    forecastContainer.innerHTML = '';
+
+    const uniqueDays = new Set();
+    forecastData.forEach(entry => {
+        const date = new Date(entry.date).toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
+
+        // Filtra entradas para evitar duplicação de dias
+        if (!uniqueDays.has(date)) {
+            uniqueDays.add(date);
+            const forecastDay = document.createElement('div');
+            forecastDay.classList.add('forecast-day');
+
+            forecastDay.innerHTML = `
+                <h4>${date}</h4>
+                <div class="forecast-details">
+                    <p>Temp: ${entry.temperature}°C</p>
+                    <p>Vento: ${entry.windSpeed} m/s</p>
+                    <p>Umidade: ${entry.humidity}%</p>
+                    <p>Nível de água: ${entry.waterLevel} mm</p>
+                </div>
+            `;
+
+            // Alterna a exibição dos detalhes ao clicar
+            forecastDay.addEventListener('click', () => {
+                forecastDay.classList.toggle('active');
+            });
+
+            forecastContainer.appendChild(forecastDay);
+        }
+    });
 }
 
 // Função para ocultar mensagens de erro
@@ -25,13 +83,16 @@ async function fetchWeatherData(city) {
         const data = await response.json();
 
         if (response.ok) {
-            return data.list.map(entry => ({
+            const forecastData = data.list.map(entry => ({
                 date: entry.dt_txt,
                 waterLevel: entry.rain ? entry.rain['3h'] || 0 : 0,
                 temperature: entry.main.temp,
                 windSpeed: entry.wind.speed,
                 humidity: entry.main.humidity
             }));
+
+            displayForecast(forecastData);
+            return forecastData;
         } else {
             showError('Erro: Cidade não encontrada.');
             return [];
@@ -42,12 +103,31 @@ async function fetchWeatherData(city) {
     }
 }
 
+// Função para buscar alertas meteorológicos
+async function fetchWeatherAlerts(city) {
+    const url = `https://api.openweathermap.org/data/2.5/alerts?q=${city}&appid=${apiKey}`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (response.ok) {
+            displayWeatherAlerts(data.alerts || []);
+        } else {
+            showError('Erro ao buscar alertas meteorológicos.');
+        }
+    } catch (error) {
+        showError('Erro ao buscar alertas meteorológicos.');
+    }
+}
+
 // Função para atualizar o gráfico de níveis de água e outras informações
 async function updateChartAndInfo(city) {
-    hideError(); // Oculta erros anteriores
+    hideError();
     const weatherData = await fetchWeatherData(city);
+    await fetchWeatherAlerts(city);
 
-    if (weatherData.length === 0) return; // Retorna caso não haja dados
+    if (weatherData.length === 0) return;
 
     const labels = weatherData.map(entry => entry.date);
     const levels = weatherData.map(entry => entry.waterLevel);
@@ -57,12 +137,10 @@ async function updateChartAndInfo(city) {
 
     const ctx = document.getElementById('waterLevelChart').getContext('2d');
 
-    // Remove gráfico anterior se houver um
     if (chartInstance) {
         chartInstance.destroy();
     }
 
-    // Renderiza o novo gráfico
     chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
@@ -168,7 +246,7 @@ async function searchCity() {
     if (coordinates) {
         const { lat, lon } = coordinates;
         initMap(lat, lon, cityInput);
-        updateChartAndInfo(cityInput); // Atualiza o gráfico e informações da cidade pesquisada
+        updateChartAndInfo(cityInput);
     }
 }
 
@@ -177,3 +255,4 @@ document.getElementById('searchButton').addEventListener('click', searchCity);
 
 // Inicializa a aplicação com a cidade padrão
 searchCity();
+
