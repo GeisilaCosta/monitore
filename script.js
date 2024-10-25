@@ -105,7 +105,7 @@ async function fetchWeatherData(city) {
 
 // Função para buscar alertas meteorológicos
 async function fetchWeatherAlerts(city) {
-    const url = `https://api.openweathermap.org/data/2.5/alerts?q=${city}&appid=${apiKey}`;
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`;
 
     try {
         const response = await fetch(url);
@@ -141,6 +141,7 @@ async function fetchWeatherAlerts(city) {
         showError('Erro ao buscar alertas meteorológicos.');
     }
 }
+
 
 // Função para atualizar o gráfico de níveis de água e outras informações
 async function updateChartAndInfo(city) {
